@@ -1,30 +1,29 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module'; // Import UsersModule to use UsersService
+import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config'; // Import ConfigModule and ConfigService
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RolesGuard } from '../guards/roles.guard'; // Import RolesGuard
 
 @Module({
   imports: [
-    UsersModule, // Import UsersModule to use UsersService
+    UsersModule,
     PassportModule,
     JwtModule.registerAsync({
-      // Register JwtModule asynchronously using registerAsync
-      imports: [ConfigModule], // Import ConfigModule to access ConfigService
+      imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        // Use factory function to access ConfigService
-        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key', // Get secret from config, default if not found
-        signOptions: { expiresIn: '1h' }, // Token expiration time - can also be configured
+        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key',
+        signOptions: { expiresIn: '1h' },
       }),
-      inject: [ConfigService], // Inject ConfigService into the factory function
+      inject: [ConfigService],
     }),
-    ConfigModule, // Import ConfigModule to be able to use ConfigService in this module
+    ConfigModule,
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, RolesGuard], // Add RolesGuard to providers array
   controllers: [AuthController],
-  exports: [AuthService], // Optionally export AuthService if you want to use it in other modules
+  exports: [AuthService, RolesGuard], // Optionally export RolesGuard if you want to use it outside AuthModule, though not strictly necessary in this setup.
 })
 export class AuthModule {}
