@@ -23,8 +23,6 @@ import { UserRole } from '../entities/user.entity';
 import { Goods } from '../entities/goods.entity';
 
 @Controller('goods')
-// Remove the controller-level UseGuards decorator:
-// @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class GoodsController {
   constructor(private readonly goodsService: GoodsService) {}
 
@@ -38,7 +36,6 @@ export class GoodsController {
   }
 
   @Get()
-  // No UseGuards decorator here - making it public
   findAll(): Promise<Goods[]> {
     return this.goodsService.findAll();
   }
@@ -50,7 +47,7 @@ export class GoodsController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard) // Apply guards only to PUT
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @UsePipes(new ValidationPipe())
   update(@Param('id', ParseIntPipe) id: number, @Body() updateGoodsDto: UpdateGoodsDto): Promise<Goods> {
@@ -58,7 +55,7 @@ export class GoodsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard) // Apply guards only to DELETE
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.goodsService.remove(id);
