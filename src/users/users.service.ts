@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto'; // Import UpdateUserDto
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -45,19 +46,44 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async findUserById(id: number): Promise<User | undefined> {
+  async findUserById(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      return undefined; // Or you could throw a NotFoundException here if you prefer
+      throw new NotFoundException(`User with ID "${id}" not found`);
     }
     return user;
   }
 
   async findUserByUsername(username: string): Promise<User | undefined> {
     const user = await this.usersRepository.findOne({ where: { username } });
-    if (!user) {
-      return undefined; // Or you could throw a NotFoundException here if you prefer
+    if (user === null) {
+      return undefined;
     }
     return user;
+  }
+
+  async findAllUsers(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
+
+  async updateUser(id: number, updateUserData: UpdateUserDto): Promise<User> {
+    const user = await this.findUserById(id); // Ensure user exists
+
+    if (updateUserData.password) {
+      const saltRounds = 10;
+      updateUserData.passwordHash = await bcrypt.hash(
+        updateUserData.password,
+        saltRounds,
+      );
+      // No need to delete updateUserData.password anymore
+    }
+
+    this.usersRepository.merge(user, updateUserData);
+    return this.usersRepository.save(user);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findUserById(id); // Ensure user exists
+    await this.usersRepository.remove(user);
   }
 }

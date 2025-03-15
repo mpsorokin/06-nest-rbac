@@ -50,7 +50,10 @@ export class GoodsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @UsePipes(new ValidationPipe())
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateGoodsDto: UpdateGoodsDto): Promise<Goods> {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateGoodsDto: UpdateGoodsDto,
+  ): Promise<Goods> {
     return this.goodsService.update(id, updateGoodsDto);
   }
 
